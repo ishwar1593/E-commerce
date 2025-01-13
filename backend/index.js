@@ -1,28 +1,32 @@
 import dotenv from "dotenv";
-import app from "./app.js";
+import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import routes from "./routes/index.js";
 
 // Load env variables using import module
 dotenv.config({
   path: ".env",
 });
 
-// // Connect to the database and then start the server
-// const startServer = async () => {
-//   try {
-//     await connectDB(); // Ensure DB is connected first
-//     console.log("Database connected successfully");
+const app = express();
 
-//     // Start the server after successful DB connection
-//     app.listen(process.env.PORT || 8080, () => {
-//       console.log(`Server is running on port ${process.env.PORT || 8080}`);
-//     });
-//   } catch (error) {
-//     console.log("Postgres connection error:", error);
-//     process.exit(1); // Exit the process if DB connection fails
-//   }
-// };
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  })
+);
 
-// startServer();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+// static files : PDF, DOCX, MP4, etc
+app.use(express.static("public"));
+
+// Routes Declaration
+app.use(routes);
+
 app.listen(process.env.PORT || 8080, () => {
   console.log(`Server is running on port ${process.env.PORT || 8080}`);
 });

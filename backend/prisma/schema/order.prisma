@@ -1,0 +1,32 @@
+model Order {
+    id              String      @id @default(uuid())
+    user            User        @relation(fields: [user_id], references: [id])
+    user_id         String
+    phone_number    PhoneNumber @relation(fields: [phone_number_id], references: [id]) // Add phone number reference
+    phone_number_id String
+    address         Address     @relation(fields: [address_id], references: [id])
+    address_id      String
+    order_items     OrderItem[]
+    total           Float
+    status          OrderStatus @default(PENDING)
+    created_at      DateTime    @default(now())
+    updated_at      DateTime    @updatedAt
+}
+
+model OrderItem {
+    id          String     @id @default(uuid())
+    order       Order   @relation(fields: [order_id], references: [id])
+    order_id    String
+    product     Product @relation(fields: [product_id], references: [id])
+    product_id  String
+    sales_price Float // Price of the product at the time the order was placed
+    mrp         Float
+    quantity    Int
+    total       Float
+}
+
+enum OrderStatus {
+    PENDING
+    COMPLETED 
+    CANCELLED
+}

@@ -1,0 +1,12 @@
+model Address {
+    id         String  @id @default(uuid())
+    street     String
+    pincode    String
+    city       String
+    state      String
+    country    String
+    is_default Boolean @default(false)
+    user       User    @relation(fields: [user_id], references: [id])
+    user_id    String
+    orders     Order[]
+}

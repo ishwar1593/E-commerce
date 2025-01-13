@@ -1,0 +1,23 @@
+model Product {
+    id           String   @id @default(uuid())
+    name         String
+    description  String
+    category     String
+    ws_code      Int      @unique @default(autoincrement()) // unique code for each product
+    package_size Int // how many medicine/strip
+    images       String[]
+    tags         String[]
+    sales_price  Float 
+    mrp          Float 
+    stockQty     Int 
+    created_at   DateTime @default(now())
+    updated_at   DateTime @updatedAt
+
+    // Relationships
+    user      User        @relation(fields: [user_id], references: [id])
+    user_id   String
+    cartItem  CartItem[]
+    orderItem OrderItem[]
+
+    @@index([name, ws_code]) // Indexing for search
+}

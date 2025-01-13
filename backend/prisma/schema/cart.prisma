@@ -1,0 +1,20 @@
+model Cart {
+  id         String     @id @default(uuid())
+  user       User       @relation(fields: [user_id], references: [id])
+  user_id    String     @unique
+  items      CartItem[]
+  total      Float
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+}
+
+model CartItem {
+  id         Int     @id @default(autoincrement())
+  cart       Cart    @relation(fields: [cart_id], references: [id])
+  cart_id    String
+  product    Product @relation(fields: [product_id], references: [id])
+  product_id String
+  quantity   Int
+
+  @@unique([cart_id, product_id]) // Ensures that the same product can’t be added multiple times in the cart
+}
