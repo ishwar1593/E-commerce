@@ -1,3 +1,4 @@
+import { error } from "console";
 import prisma from "../../db/connectDB.js";
 import {
   deleteFromCloudinary,
@@ -64,7 +65,7 @@ const addProduct = async (req, res) => {
     }
 
     // Step 3: Handle images (if applicable)
-    if (!productPhotosLocalPath && productPhotosLocalPath.length === 0) {
+    if (!productPhotosLocalPath || productPhotosLocalPath.length === 0) {
       return res
         .status(400)
         .json({ success: false, message: "Product images required." });
@@ -82,9 +83,24 @@ const addProduct = async (req, res) => {
       !cloudinaryUploadResults ||
       cloudinaryUploadResults.some((result) => !result)
     ) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Error while adding images..." });
+      return res.status(400).json({
+        success: false,
+        message: "Error while adding images.",
+      });
+    }
+
+    // category check
+    const categoryExists = await prisma.category.findUnique({
+      where: {
+        name: category,
+      },
+    });
+
+    if (!categoryExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Category does not exist",
+      });
     }
 
     // Step 6: Create the product in the database
@@ -93,7 +109,7 @@ const addProduct = async (req, res) => {
       data: {
         name,
         description,
-        category,
+        category: { connect: { id: categoryExists.id } },
         package_size: parseInt(package_size),
         tags: Array.isArray(tags)
           ? tags
@@ -127,11 +143,11 @@ const addProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     // Step 1: Get data from the request body
+    const { productId } = req.params; // Get the product ID from the URL params
     const {
       name,
       description,
       category,
-      ws_code,
       package_size,
       tags,
       sales_price,
@@ -145,7 +161,6 @@ const updateProduct = async (req, res) => {
       !name ||
       !description ||
       !category ||
-      !ws_code ||
       !package_size ||
       !tags ||
       !sales_price ||
@@ -160,14 +175,14 @@ const updateProduct = async (req, res) => {
     // Step 3: Check if the product exists
     const product = await prisma.product.findUnique({
       where: {
-        ws_code: parseInt(ws_code), // `ws_code` will be passed as a parameter
+        id: productId, // `ws_code` will be passed as a parameter
       },
     });
 
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: `Product with ws_code ${ws_code} not found.`,
+        message: `Product not found.`,
       });
     }
 
@@ -191,16 +206,31 @@ const updateProduct = async (req, res) => {
         });
       }
     }
+    // category check
+    const categoryExists = await prisma.category.findUnique({
+      where: {
+        name: category,
+      },
+    });
+
+    if (!categoryExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Category does not exist",
+      });
+    }
 
     // Step 5: Update product in the database (excluding ws_code which is immutable)
     const updatedProduct = await prisma.product.update({
       where: {
-        ws_code: parseInt(ws_code), // `ws_code` used to find the product
+        id: productId,
       },
       data: {
         name,
         description,
-        category,
+        category: {
+          connect: { id: categoryExists.id },
+        },
         package_size: parseInt(package_size),
         tags: Array.isArray(tags)
           ? tags
@@ -367,69 +397,7 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-const getProductsByCategory = async (req, res) => {
-  try {
-    // Step 1: Get query parameters for pagination and category
-    const { category, page = 1, pageSize = 10 } = req.query;
 
-    // Step 2: Validation for category and pagination values
-    if (!category) {
-      return res.status(400).json({
-        success: false,
-        message: "Category is required.",
-      });
-    }
-
-    const pageNumber = parseInt(page);
-    const pageSizeNumber = parseInt(pageSize);
-
-    // Step 3: Validation to make sure page and pageSize are positive numbers
-    if (pageNumber <= 0 || pageSizeNumber <= 0) {
-      pageNumber = 1;
-      pageSizeNumber = 10;
-    }
-
-    // Step 4: Calculate the 'skip' and 'take' values for pagination
-    const skip = (pageNumber - 1) * pageSizeNumber; // Skip previous pages
-    const take = pageSizeNumber; // Number of products to return
-
-    // Step 5: Fetch the paginated products by category from the database
-    const products = await prisma.product.findMany({
-      where: {
-        category: category, // Filter products by category
-      },
-      skip, // Skip the first n records
-      take, // Take the next n records
-    });
-
-    // Step 6: Get the total count of products for pagination info
-    const totalProducts = await prisma.product.count({
-      where: {
-        category: category, // Count products by category
-      },
-    });
-
-    // Step 7: Send the response with paginated products and pagination info
-    return res.status(200).json({
-      success: true,
-      message: "Products fetched successfully",
-      data: products,
-      pagination: {
-        currentPage: pageNumber,
-        pageSize: pageSizeNumber,
-        totalProducts,
-        totalPages: Math.ceil(totalProducts / pageSizeNumber),
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "An error occurred while fetching products by category",
-      error: error.message,
-    });
-  }
-};
 
 export {
   searchProduct,
@@ -438,5 +406,4 @@ export {
   deleteProduct,
   getProductById,
   getAllProducts,
-  getProductsByCategory,
 };

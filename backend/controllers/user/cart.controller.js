@@ -116,110 +116,70 @@ const addToCart = async (req, res) => {
     });
 
     if (existingCartItem) {
-      const quantityDifference = quantity - existingCartItem.quantity;
-
-      // If the product already exists in the cart, update the quantity
+      // Update quantity in the cart
       const updatedCartItem = await prisma.cartItem.update({
         where: {
           id: existingCartItem.id,
         },
         data: {
-          quantity, // Increase the quantity
+          quantity: quantity, // Increment quantity
         },
-      });
-
-      // Step 6: Update the product's stock quantity
-      await prisma.product.update({
-        where: {
-          id: productId,
-        },
-        data: {
-          stockQty: product.stockQty - quantityDifference, // Reduce stock quantity by the added quantity
-        },
-      });
-
-      // Step 7: Update the cart total
-      const cartItems = await prisma.cartItem.findMany({
-        where: {
-          cart_id: cart.id,
-        },
-        include: {
-          product: true,
-        },
-      });
-
-      const updatedTotal = cartItems.reduce(
-        (sum, item) => sum + item.quantity * item.product.sales_price,
-        0
-      );
-
-      await prisma.cart.update({
-        where: {
-          id: cart.id,
-        },
-        data: {
-          total: updatedTotal,
-        },
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: "Cart item updated successfully",
-        data: updatedCartItem,
       });
     } else {
-      // If the product does not exist in the cart, add a new cart item
-      const product = await prisma.product.findUnique({
-        where: {
-          id: productId,
-        },
-      });
-
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          error: "Product not found",
-        });
-      }
-
-      const newCartItem = await prisma.cartItem.create({
+      // Add new product to the cart
+      await prisma.cartItem.create({
         data: {
           cart_id: cart.id,
           product_id: productId,
           quantity,
         },
       });
-
-      // Step 5: Update the cart total
-      const cartItems = await prisma.cartItem.findMany({
-        where: {
-          cart_id: cart.id,
-        },
-        include: {
-          product: true,
-        },
-      });
-
-      const updatedTotal = cartItems.reduce(
-        (sum, item) => sum + item.quantity * item.product.sales_price,
-        0
-      );
-
-      await prisma.cart.update({
-        where: {
-          id: cart.id,
-        },
-        data: {
-          total: updatedTotal,
-        },
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: "Product added to cart",
-        data: newCartItem,
-      });
     }
+
+    // Step 6: Recalculate cart total
+    const cartItems = await prisma.cartItem.findMany({
+      where: {
+        cart_id: cart.id,
+      },
+      include: {
+        product: true,
+      },
+    });
+
+    const updatedTotal = cartItems.reduce(
+      (sum, item) => sum + item.quantity * item.product.sales_price,
+      0
+    );
+
+    const cartData = await prisma.cart.update({
+      where: {
+        id: cart.id,
+      },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                category: true,
+                sales_price: true,
+                mrp: true,
+                images: true,
+              },
+            },
+          },
+        },
+      },
+      data: {
+        total: updatedTotal,
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: cartData,
+      message: "Product added to cart successfully",
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, error: error.message });
@@ -285,25 +245,7 @@ const removeFromCart = async (req, res) => {
       },
     });
 
-    // Step 5: Update the product's stock quantity (add back the quantity)
-    const product = await prisma.product.findUnique({
-      where: {
-        id: productId,
-      },
-    });
-
-    if (product) {
-      await prisma.product.update({
-        where: {
-          id: productId,
-        },
-        data: {
-          stockQty: product.stockQty + existingCartItem.quantity, // Add back the quantity to stock
-        },
-      });
-    }
-
-    // Step 6: Update the cart total
+    // Step 5: Update the cart total
     const cartItems = await prisma.cartItem.findMany({
       where: {
         cart_id: cart.id,
@@ -365,34 +307,14 @@ const clearCart = async (req, res) => {
       });
     }
 
-    // Step 2: Loop through all items in the cart and update the stock
-    for (const cartItem of cart.items) {
-      const product = await prisma.product.findUnique({
-        where: {
-          id: cartItem.product_id,
-        },
-      });
-
-      if (product) {
-        await prisma.product.update({
-          where: {
-            id: cartItem.product_id,
-          },
-          data: {
-            stockQty: product.stockQty + cartItem.quantity, // Add back the quantity to the stock
-          },
-        });
-      }
-    }
-
-    // Step 3: Delete all items in the cart
+    // Step 2: Delete all items in the cart
     await prisma.cartItem.deleteMany({
       where: {
         cart_id: cart.id,
       },
     });
 
-    // Step 4: Set the cart total to 0
+    // Step 3: Set the cart total to 0
     await prisma.cart.update({
       where: {
         id: cart.id,

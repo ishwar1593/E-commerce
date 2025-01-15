@@ -1,8 +1,0 @@
-model PhoneNumber {
-  id         String  @id @default(uuid())
-  number     String
-  is_default Boolean @default(false) // Flag to mark default phone number
-  user       User    @relation(fields: [user_id], references: [id])
-  user_id    String
-  orders     Order[]
-}

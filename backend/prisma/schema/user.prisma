@@ -23,9 +23,8 @@ model User {
     reset_expiry DateTime? // Token expiry time
 
     // Relationships
-    phone_numbers PhoneNumber[]
-    products      Product[]
-    address       Address[]
-    cart          Cart?
-    orders        Order[]
+    products        Product[]
+    cart            Cart?
+    shippingDetails ShippingDetails[]
+    orders          Order[]
 }

@@ -1,0 +1,18 @@
+model ShippingDetails {
+    id           String  @id @default(uuid())
+    street       String
+    pincode      String
+    city         String
+    state        String
+    country      String
+    landmark     String? // Optional field for landmarks
+    address_type String // E.g., "Home", "Office", etc.
+
+    country_code String // To handle international numbers (e.g., +1, +91)
+    number       String
+
+    is_default Boolean @default(false)
+    user       User    @relation(fields: [user_id], references: [id])
+    user_id    String
+    orders     Order[] // Updated to allow multiple orders
+}
