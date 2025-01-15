@@ -2,7 +2,11 @@ import prisma from "../../db/connectDB.js";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import { generateOTP } from "../../utils/generateOTP.utils.js";
-import { sendOTP, sendResetPasswordEmail, sendResetSuccessEmail } from "../../config/mailtrap/email.js";
+import {
+  sendOTP,
+  sendResetPasswordEmail,
+  sendResetSuccessEmail,
+} from "../../config/mailtrap/email.js";
 import { generateTokenAndSetCookie } from "../../utils/generateTokenAndSetCookie.utils.js";
 
 const createUser = async (req, res) => {
@@ -71,14 +75,9 @@ const createUser = async (req, res) => {
 };
 
 const verifyOTP = async (req, res) => {
-  const { email, otp } = req.body; // Step 1 - Get the data from the request body
+  const { otp } = req.body; // Get the data from the request body
 
   // Step 2 - Check if the required fields are filled
-  if (!email) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Please enter your email" });
-  }
   if (!otp) {
     return res
       .status(400)
@@ -86,10 +85,10 @@ const verifyOTP = async (req, res) => {
   }
 
   try {
-    // Step 3 - Find the user in the database
-    const user = await prisma.user.findUnique({
+    // Step 3 - Find the user in the database using findFirst() instead of findUnique()
+    const user = await prisma.user.findFirst({
       where: {
-        email,
+        otp, // Search for a user with the matching OTP
       },
     });
 
@@ -104,13 +103,13 @@ const verifyOTP = async (req, res) => {
 
     // Step 5 - Check if the OTP is expired
     if (Date.now() > user.otp_expiry) {
-      return res.status(400).json({ success: false, error: "OTP expired" });
+      return res.status(401).json({ success: false, error: "OTP expired" });
     }
 
-    // Step 6 - Update the user in the database
+    // Step 6 - Update the user in the database to mark as verified
     const updatedUser = await prisma.user.update({
       where: {
-        email,
+        id: user.id, // Use the unique user id to update the user
       },
       data: {
         is_verified: true,
@@ -128,6 +127,7 @@ const verifyOTP = async (req, res) => {
     res.status(400).json({ success: false, error: error.message });
   }
 };
+
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body; // Step 1 - Get the data from the request body
@@ -337,5 +337,5 @@ export {
   logout,
   forgotPassword,
   resetPassword,
-  getUserById
+  getUserById,
 };

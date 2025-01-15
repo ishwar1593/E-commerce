@@ -1,91 +1,119 @@
-import { useState, useRef, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { useState, useRef, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { useNavigate } from "react-router";
 
+const apiUrl = "http://localhost:8000/api/v1";
 const OTPVerification = () => {
-  const [otp, setOtp] = useState(['', '', '', '', '', ''])
-  const [timer, setTimer] = useState(300)
-  const refs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()]
-  const [isResendDisabled, setIsResendDisabled] = useState(true)
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [timer, setTimer] = useState(300);
+  const refs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
+  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState(null);
+
+  const [isResendDisabled, setIsResendDisabled] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Focus first input on mount
-    refs[0].current?.focus()
+    refs[0].current?.focus();
 
     // Start countdown timer
     const interval = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
-          setIsResendDisabled(false)
-          clearInterval(interval)
-          return 0
+          setIsResendDisabled(false);
+          clearInterval(interval);
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (index, value) => {
     // Only allow numbers
-    if (!/^\d*$/.test(value)) return
+    if (!/^\d*$/.test(value)) return;
 
-    const newOtp = [...otp]
-    newOtp[index] = value
-    setOtp(newOtp)
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
 
     // Move to next input if value is entered
     if (value && index < 5) {
-      refs[index + 1].current?.focus()
+      refs[index + 1].current?.focus();
     }
-  }
+  };
 
   const handleKeyDown = (index, e) => {
     // Move to previous input on backspace
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      refs[index - 1].current?.focus()
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      refs[index - 1].current?.focus();
     }
-  }
+  };
 
   const handlePaste = (e) => {
-    e.preventDefault()
-    const pastedData = e.clipboardData.getData('text')
-    if (!/^\d{6}$/.test(pastedData)) return
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text");
+    if (!/^\d{6}$/.test(pastedData)) return;
 
-    const digits = pastedData.split('')
-    setOtp(digits)
-    refs[5].current?.focus()
-  }
+    const digits = pastedData.split("");
+    setOtp(digits);
+    refs[5].current?.focus();
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const otpString = otp.join('')
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const otpString = otp.join("");
     if (otpString.length === 6) {
-      // Handle OTP verification here
-      console.log('Verifying OTP:', otpString)
+      try {
+        // Send OTP for verification
+        const response = await axios.post(`${apiUrl}/user/verify-otp`, {
+          otp: otpString,
+        });
+        console.log(response);
+
+        if (response.data.success) {
+          setSuccess(true);
+          setError(null);
+          // Redirect to next page or show success message
+          navigate("/signin");
+        } else {
+          setError(response.data.error || "OTP verification failed.");
+          setSuccess(false);
+          navigate("/verify-otp");
+        }
+      } catch (error) {
+        // setError("An error occurred. Please try again.",error);
+        setSuccess(false);
+      }
     }
-  }
+  };
 
   const handleResendOTP = () => {
     // Reset timer and disable resend button
-    setTimer(300)  // Reset to full timer (optional)
-    setIsResendDisabled(true)
+    setTimer(300); // Reset to full timer (optional)
+    setIsResendDisabled(true);
     // Handle resend OTP logic here
-    console.log('Resending OTP')
-  }
+    console.log("Resending OTP");
+  };
 
   // Formatting the timer to MM:SS
   const formattedTimer = `${Math.floor(timer / 60)
     .toString()
-    .padStart(2, '0')}:${(timer % 60).toString().padStart(2, '0')}`;
+    .padStart(2, "0")}:${(timer % 60).toString().padStart(2, "0")}`;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Verify Your Email</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            Verify Your Email
+          </CardTitle>
           <p className="text-center text-gray-500 mt-2">
             We've sent a verification code to your email
           </p>
@@ -107,14 +135,18 @@ const OTPVerification = () => {
                 />
               ))}
             </div>
-            
-            <Button type="submit" className="w-full" disabled={otp.some(digit => !digit)}>
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={otp.some((digit) => !digit)}
+            >
               Verify Email
             </Button>
-            
+
             <div className="text-center text-sm">
               <p className="text-gray-500">
-                Didn't receive the code?{' '}
+                Didn't receive the code?{" "}
                 {isResendDisabled ? (
                   <span>Resend in {formattedTimer}</span>
                 ) : (
@@ -132,7 +164,7 @@ const OTPVerification = () => {
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default OTPVerification
+export default OTPVerification;

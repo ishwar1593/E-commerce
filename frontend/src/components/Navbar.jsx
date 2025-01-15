@@ -1,37 +1,60 @@
-import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ShoppingCart, Menu, User, LogOut, Package, Heart } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { ShoppingCart, Menu, User, LogOut, Package, Heart } from "lucide-react";
+import axios from "axios";
+import { useNavigate } from "react-router";
+
+const apiUrl = "http://localhost:8000/api/v1";
 
 const Navbar = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [cartCount] = useState(0)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [cartCount] = useState(0);
+  const navigate = useNavigate();
 
+  // Check authentication status from backend
   useEffect(() => {
-    // Check if token exists in cookies
-    const checkAuth = () => {
-      const cookies = document.cookie.split(';')
-      const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('token='))
-      setIsAuthenticated(!!tokenCookie)
-    }
-    
-    checkAuth()
-  }, [])
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/check-auth`, {
+          withCredentials: true,
+        }); // withCredentials is important for sending cookies
+        if (response.data.isAuthenticated) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+    };
 
-  const handleLogout = () => {
-    // Delete the token cookie
-    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-    setIsAuthenticated(false)
-    // Redirect to home or login page
-    window.location.href = '/signin'
-  }
+    checkAuth();
+  }, []);
+
+  // Cart click handler
+  const handleCartClick = () => {
+    navigate("/cart"); // Navigate to cart page (change the path as needed)
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      // Call backend to invalidate the session or delete the token
+      await axios.post(`${apiUrl}/user/logout`, {}, { withCredentials: true });
+
+      // Update frontend state
+      setIsAuthenticated(false);
+      window.location.href = "/signin"; // Redirect to sign-in page
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm">
@@ -44,15 +67,26 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="/" className="text-gray-600 hover:text-gray-900">Home</a>
-            <a href="/products" className="text-gray-600 hover:text-gray-900">Products</a>
-            <a href="/categories" className="text-gray-600 hover:text-gray-900">Categories</a>
+            <a href="/" className="text-gray-600 hover:text-gray-900">
+              Home
+            </a>
+            <a href="/products" className="text-gray-600 hover:text-gray-900">
+              Products
+            </a>
+            <a href="/categories" className="text-gray-600 hover:text-gray-900">
+              Categories
+            </a>
           </div>
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
             {/* Cart */}
-            <Button variant="ghost" size="icon" className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={handleCartClick}
+            >
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -84,7 +118,10 @@ const Navbar = () => {
                     Orders
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-600"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                   </DropdownMenuItem>
@@ -117,21 +154,36 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 space-y-2">
-            <a href="/" className="block px-3 py-2 text-gray-600 hover:text-gray-900">
+            <a
+              href="/"
+              className="block px-3 py-2 text-gray-600 hover:text-gray-900"
+            >
               Home
             </a>
-            <a href="/products" className="block px-3 py-2 text-gray-600 hover:text-gray-900">
+            <a
+              href="/products"
+              className="block px-3 py-2 text-gray-600 hover:text-gray-900"
+            >
               Products
             </a>
-            <a href="/categories" className="block px-3 py-2 text-gray-600 hover:text-gray-900">
+            <a
+              href="/categories"
+              className="block px-3 py-2 text-gray-600 hover:text-gray-900"
+            >
               Categories
             </a>
             {!isAuthenticated && (
               <>
-                <a href="/signin" className="block px-3 py-2 text-gray-600 hover:text-gray-900">
+                <a
+                  href="/signin"
+                  className="block px-3 py-2 text-gray-600 hover:text-gray-900"
+                >
                   Sign In
                 </a>
-                <a href="/signup" className="block px-3 py-2 text-gray-600 hover:text-gray-900">
+                <a
+                  href="/signup"
+                  className="block px-3 py-2 text-gray-600 hover:text-gray-900"
+                >
                   Sign Up
                 </a>
               </>
@@ -140,7 +192,7 @@ const Navbar = () => {
         )}
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

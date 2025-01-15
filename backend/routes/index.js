@@ -9,8 +9,12 @@ import orderRoutes from "./user/order.routes.js";
 import orderAdminRoutes from "./admin/order.admin.routes.js";
 import categoryRoutes from "./user/category.routes.js";
 import categoryAdminRoutes from "./admin/category.admin.routes.js";
+import checkAuthRoute from "./checkAuth/checkAuth.route.js"
 
 const router = Router();
+
+// check auth for frontend
+router.use("/api/v1/check-auth", checkAuthRoute);
 
 // Admin side
 router.use("/api/v1/admin", userAdminRoutes);
