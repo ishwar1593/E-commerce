@@ -48,6 +48,9 @@ const Navbar = () => {
       // Call backend to invalidate the session or delete the token
       await axios.post(`${apiUrl}/user/logout`, {}, { withCredentials: true });
 
+      // clear local storage
+      localStorage.removeItem("cartQuantities");
+
       // Update frontend state
       setIsAuthenticated(false);
       window.location.href = "/signin"; // Redirect to sign-in page
@@ -73,8 +76,8 @@ const Navbar = () => {
             <a href="/products" className="text-gray-600 hover:text-gray-900">
               Products
             </a>
-            <a href="/categories" className="text-gray-600 hover:text-gray-900">
-              Categories
+            <a href="/my-orders" className="text-gray-600 hover:text-gray-900">
+              Orders
             </a>
           </div>
 
@@ -113,10 +116,10 @@ const Navbar = () => {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  {/* <DropdownMenuItem>
                     <Package className="mr-2 h-4 w-4" />
                     Orders
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}

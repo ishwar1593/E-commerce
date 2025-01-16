@@ -4,6 +4,9 @@ import SignUpPage from "./pages/SignUpPage";
 import OTPVerification from "./pages/OTPVerification";
 import Products from "./pages/ProductPage";
 import CartPage from "./pages/CartPage";
+import ShippingDetailsPage from "./pages/ShippingDetailsPage";
+import MyOrders from "./pages/MyOrderPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
@@ -13,6 +16,11 @@ function App() {
       <Route path="/verify-otp" element={<OTPVerification />} />
       <Route path="/products" element={<Products />} />
       <Route path="/cart" element={<CartPage />} />
+      <Route path="/shipping-details" element={<ShippingDetailsPage />} />
+      <Route path="/my-orders" element={<MyOrders />} />
+
+      {/* Admin Dashboard */}
+      <Route path="/admin" element={<AdminDashboard />} />
     </Routes>
   );
 }

@@ -266,12 +266,12 @@ const updateProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   try {
-    const { ws_code } = req.params; // Get ws_code from the URL params
+    const { ws_code } = req.params;
 
     // Step 1: Check if the product exists
     const product = await prisma.product.findUnique({
       where: {
-        ws_code: parseInt(ws_code), // Use ws_code to find the product
+        ws_code: parseInt(ws_code),
       },
     });
 
@@ -282,22 +282,29 @@ const deleteProduct = async (req, res) => {
       });
     }
 
-    // Step 2: Delete images from Cloudinary (if there are any)
+    // Step 2: Delete related OrderItems
+    await prisma.orderItem.deleteMany({
+      where: {
+        product_id: product.id,
+      },
+    });
+
+    // Step 3: Delete images from Cloudinary (if there are any)
     if (product.images && product.images.length > 0) {
       const deleteImagePromises = product.images.map((imageUrl) =>
         deleteFromCloudinary(imageUrl)
       );
-      await Promise.all(deleteImagePromises); // Wait for all image deletions
+      await Promise.all(deleteImagePromises);
     }
 
-    // Step 3: Delete the product from the database
+    // Step 4: Delete the product from the database
     await prisma.product.delete({
       where: {
-        ws_code: parseInt(ws_code), // Use ws_code to identify the product
+        ws_code: parseInt(ws_code),
       },
     });
 
-    // Step 4: Respond with a success message
+    // Step 5: Respond with a success message
     return res.status(200).json({
       success: true,
       message: `Product with ws_code ${ws_code} has been deleted successfully.`,
@@ -312,6 +319,7 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+
 const getProductById = async (req, res) => {
   try {
     const { id } = req.params; // Get the product ID from the URL params
@@ -320,6 +328,9 @@ const getProductById = async (req, res) => {
     const product = await prisma.product.findUnique({
       where: {
         id: id, // Find the product using the ID
+      },
+      include: {
+        category: true,
       },
     });
 
@@ -370,6 +381,9 @@ const getAllProducts = async (req, res) => {
     const products = await prisma.product.findMany({
       skip, // Skip the first n records
       take, // Take the next n records
+      include: {
+        category: true,
+      },
     });
 
     // Step 5: Get the total count of products for pagination info
