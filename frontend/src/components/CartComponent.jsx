@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Minus, Plus, X, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const apiUrl = "http://localhost:8000/api/v1";
 
@@ -83,13 +84,16 @@ const CartComponent = () => {
           productId: item.product.id,
           quantity: item.quantity,
         };
-  
+
         const response = await axios.post(`${apiUrl}/cart/add-cart`, cartData, {
           withCredentials: true,
         });
-  
+
         // Handle individual product response if needed
-        console.log(`Product ${item.product.name} added to cart:`, response.data);
+        console.log(
+          `Product ${item.product.name} added to cart:`,
+          response.data
+        );
       }
       // Handle success (for example, navigate to a success page or checkout page)
       // console.log("Checkout successful", response.data);
@@ -111,6 +115,8 @@ const CartComponent = () => {
           withCredentials: true,
         });
         const { data } = response.data;
+
+        console.log("Cart data:", data.items.length);
 
         const apiCart = data.items.map((item) => ({
           ...item,
@@ -146,9 +152,26 @@ const CartComponent = () => {
   };
 
   // Remove item from cart
-  const removeFromCart = (itemId) => {
+  const removeFromCart = async (itemId, localId) => {
+    console.log("Removing item from cart:", itemId);
+
+    try {
+      // Make API call to remove the item
+      const response = await axios.patch(
+        `${apiUrl}/cart/remove-item`,
+        { productId: itemId },
+        { withCredentials: true }
+      );
+      console.log(response.data);
+
+      toast.success("Item removed from cart successfully");
+    } catch (error) {
+      toast.error("Failed to remove item from cart");
+      console.error("Failed to remove item from cart:", error);
+    }
+
     setCartItems((prev) => {
-      const updatedCart = prev.filter((item) => item.id !== itemId);
+      const updatedCart = prev.filter((item) => item.id !== localId);
       localStorage.setItem("cartItems", JSON.stringify(updatedCart));
       return updatedCart;
     });
@@ -183,10 +206,12 @@ const CartComponent = () => {
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
         <ShoppingBag className="h-16 w-16 mx-auto text-gray-400 mb-4" />
         <h2 className="text-2xl font-semibold mb-4">Your cart is empty</h2>
-        <Button onClick={() => navigate("/products")}>Continue Shopping</Button>
+        <Button onClick={() => navigate("/")}>Continue Shopping</Button>
       </div>
     );
   }
+
+  console.log("Cart items:", cartItems);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -202,7 +227,9 @@ const CartComponent = () => {
                   key={item.id}
                   item={item}
                   updateQuantity={updateQuantity}
-                  removeFromCart={removeFromCart}
+                  removeFromCart={() =>
+                    removeFromCart(item.product_id, item.id)
+                  }
                 />
               ))}
             </CardContent>
@@ -239,7 +266,7 @@ const CartComponent = () => {
               <Button
                 variant="outline"
                 className="w-full mt-4"
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/")}
               >
                 Continue Shopping
               </Button>

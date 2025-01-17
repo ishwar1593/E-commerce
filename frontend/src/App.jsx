@@ -7,21 +7,25 @@ import CartPage from "./pages/CartPage";
 import ShippingDetailsPage from "./pages/ShippingDetailsPage";
 import MyOrders from "./pages/MyOrderPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/signin" element={<SignInPage />} />
-      <Route path="/signup" element={<SignUpPage />} />
-      <Route path="/verify-otp" element={<OTPVerification />} />
-      <Route path="/products" element={<Products />} />
-      <Route path="/cart" element={<CartPage />} />
-      <Route path="/shipping-details" element={<ShippingDetailsPage />} />
-      <Route path="/my-orders" element={<MyOrders />} />
+    <>
+      <ToastContainer position="top-right" />
+      <Routes>
+        <Route path="/signin" element={<SignInPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path="/" element={<Products />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/shipping-details" element={<ShippingDetailsPage />} />
+        <Route path="/my-orders" element={<MyOrders />} />
 
-      {/* Admin Dashboard */}
-      <Route path="/admin" element={<AdminDashboard />} />
-    </Routes>
+        {/* Admin Dashboard */}
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+    </>
   );
 }
 export default App;

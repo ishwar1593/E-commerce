@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -17,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
 
 const apiUrl = "http://localhost:8000/api/v1";
 
@@ -25,14 +23,14 @@ const OrderPanel = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filteredStatus, setFilteredStatus] = useState("ALL");
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(
-          `${apiUrl}/admin/orders`,
-          { withCredentials: true }
-        );
+        const response = await axios.get(`${apiUrl}/admin/orders`, {
+          withCredentials: true,
+        });
         // Flatten the nested structure from the API response
         const ordersList = Object.values(response.data.data).flat();
         setOrders(ordersList);
@@ -64,6 +62,43 @@ const OrderPanel = () => {
     return statusMap[status] || "default";
   };
 
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      // Update order status in the backend
+      await axios.patch(
+        `${apiUrl}/admin/orders/update-status`,
+        { orderId, newStatus },
+        { withCredentials: true }
+      );
+
+      // Update the status in the local state
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+    } catch (err) {
+      setError("Failed to update order status");
+    }
+  };
+
+  const handleFilterChange = (status) => {
+    setFilteredStatus(status);
+  };
+
+  // Filter orders based on the selected status
+  const filteredOrders =
+    filteredStatus === "ALL"
+      ? orders
+      : orders.filter((order) => order.status === filteredStatus);
+
+  // Utility to apply active background color to the selected filter button
+  const getButtonClass = (status) => {
+    return filteredStatus === status
+      ? "bg-black text-white" // Active button style
+      : "text-black"; // Default style for inactive buttons
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -83,8 +118,48 @@ const OrderPanel = () => {
   return (
     <div className="p-6">
       <Card>
-        <CardHeader>
+        {/* <CardHeader>
           <CardTitle>Recent Orders</CardTitle>
+        </CardHeader> */}
+        <CardHeader>
+          <CardTitle className="mb-5">Recent Orders</CardTitle>
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              className={`mx-2 ${getButtonClass("ALL")}`}
+              onClick={() => handleFilterChange("ALL")}
+            >
+              All
+            </Button>
+            <Button
+              variant="outline"
+              className={`mx-2 ${getButtonClass("PENDING")}`}
+              onClick={() => handleFilterChange("PENDING")}
+            >
+              Pending
+            </Button>
+            <Button
+              variant="outline"
+              className={`mx-2 ${getButtonClass("CONFIRMED")}`}
+              onClick={() => handleFilterChange("CONFIRMED")}
+            >
+              Confirmed
+            </Button>
+            <Button
+              variant="outline"
+              className={`mx-2 ${getButtonClass("COMPLETED")}`}
+              onClick={() => handleFilterChange("COMPLETED")}
+            >
+              Completed
+            </Button>
+            <Button
+              variant="outline"
+              className={`mx-2 ${getButtonClass("CANCELLED")}`}
+              onClick={() => handleFilterChange("CANCELLED")}
+            >
+              Cancelled
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -101,11 +176,9 @@ const OrderPanel = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell className="font-medium">
-                    {order.id.slice(0, 8)}...
-                  </TableCell>
+                  <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>
                     <div>
                       <p className="font-medium">{`${order.user.fname} ${order.user.lname}`}</p>
@@ -126,9 +199,43 @@ const OrderPanel = () => {
                   </TableCell>
                   <TableCell>₹{order.total}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusColor(order.status)}>
-                      {order.status}
-                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant={getStatusColor(order.status)}>
+                          {order.status}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleStatusChange(order.id, "PENDING")
+                          }
+                        >
+                          PENDING
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleStatusChange(order.id, "CONFIRMED")
+                          }
+                        >
+                          CONFIRMED
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleStatusChange(order.id, "COMPLETED")
+                          }
+                        >
+                          COMPLETED
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleStatusChange(order.id, "CANCELLED")
+                          }
+                        >
+                          CANCELLED
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                   <TableCell>{formatDate(order.created_at)}</TableCell>
                   <TableCell>
@@ -141,20 +248,6 @@ const OrderPanel = () => {
                         {order.shippingDetails.pincode}
                       </p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Update Status</DropdownMenuItem>
-                        <DropdownMenuItem>Contact Customer</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}

@@ -136,7 +136,7 @@ const loginUser = async (req, res) => {
   if (!email || !password) {
     return res
       .status(400)
-      .json({ success: false, error: "Please fill all fields" });
+      .json({ success: false, message: "Please fill all fields" });
   }
 
   // Step 3 - Find the user in the database
@@ -149,7 +149,7 @@ const loginUser = async (req, res) => {
   if (!user) {
     return res.status(400).json({
       success: false,
-      error: "User not found",
+      message: "User not found",
     });
   }
 
@@ -157,14 +157,14 @@ const loginUser = async (req, res) => {
   if (!user.is_verified) {
     return res.status(400).json({
       success: false,
-      error: "User not verified",
+      message: "User not verified",
     });
   }
 
   // Step 5 - Compare the password
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
   if (!isPasswordCorrect) {
-    return res.status(400).json({ success: false, error: "Invalid password" });
+    return res.status(400).json({ success: false, message: "Invalid password" });
   }
 
   // Step 6 - Generate token and set cookie
@@ -309,7 +309,7 @@ const resetPassword = async (req, res) => {
 };
 
 const getUserById = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   try {
     if (req.user.role !== "ADMIN" && id !== req.user.id) {
       return res.status(400).json({

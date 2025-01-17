@@ -12,7 +12,7 @@ const router = Router();
 // Client Routes
 router.get("/", verifyJwt, getUserCart);
 router.post("/add-cart", verifyJwt, addToCart);
-router.delete("/remove-item", verifyJwt, removeFromCart);
+router.patch("/remove-item", verifyJwt, removeFromCart);
 router.delete("/clear-cart", verifyJwt, clearCart);
 
 export default router;

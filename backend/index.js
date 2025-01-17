@@ -11,12 +11,14 @@ dotenv.config({
 
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:5173', // Make sure this matches the frontend origin exactly
-  methods: 'GET,POST,PUT,DELETE',  // Allow the necessary methods
-  allowedHeaders: 'Content-Type,Authorization', // Allow necessary headers
-  credentials: true, // Allow cookies (if needed)
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Make sure this matches the frontend origin exactly
+    methods: "GET,POST,PUT,DELETE,PATCH", // Allow the necessary methods
+    allowedHeaders: "Content-Type,Authorization", // Allow necessary headers
+    credentials: true, // Allow cookies (if needed)
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

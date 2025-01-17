@@ -187,8 +187,8 @@ const addToCart = async (req, res) => {
 };
 
 const removeFromCart = async (req, res) => {
+  console.log("API Called");
   const { productId } = req.body; // Product ID should come from the request body
-
   // Step 1: Check if productId is provided
   if (!productId) {
     return res.status(400).json({

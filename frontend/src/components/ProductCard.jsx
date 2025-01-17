@@ -2,9 +2,13 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { useSearch } from "../context/SearchContext";
+import { toast } from "react-toastify";
 
 const apiUrl = "http://localhost:8000/api/v1";
 function ProductCard() {
+  const { searchQuery } = useSearch();
+  const { productId } = useSearch();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,34 +20,73 @@ function ProductCard() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const response = await axios.get(
-          `${apiUrl}/product?page=${currentPage}&pageSize=10`
-        );
+        if(!searchQuery){
 
-        if (response.data.success) {
-          setProducts(response.data.data);
-          setTotalPages(response.data.pagination.totalPages);
-
-          // Initialize quantities from localStorage (if any)
-          const savedQuantities =
-            JSON.parse(localStorage.getItem("cartQuantities")) || [];
-          const initialQuantities = response.data.data.map(
-            (_, index) => savedQuantities[index] || 1
+          const response = await axios.get(
+            `${apiUrl}/product?page=${currentPage}&pageSize=10`
           );
-          setQuantities(initialQuantities);
-        } else {
-          setError("Failed to load products.");
+          if (response.data.success) {
+            console.log("Products:", response.data.data);
+            
+              setProducts(response.data.data);
+            
+            setTotalPages(response.data.pagination.totalPages);
+  
+            // Initialize quantities from localStorage (if any)
+            const savedQuantities =
+              JSON.parse(localStorage.getItem("cartQuantities")) || [];
+            const initialQuantities = response.data.data.map(
+              (_, index) => savedQuantities[index] || 1
+            );
+            setQuantities(initialQuantities);
+                    setLoading(false);
+          } else {
+            setError("Failed to load products.");
+          }
         }
+
+      
       } catch (err) {
         console.log(err);
+                setLoading(false);
         setError("Error fetching data.");
-      } finally {
-        setLoading(false);
       }
     }
 
     fetchProducts();
-  }, [currentPage]);
+  }, [currentPage,searchQuery]);
+
+  // Search use effect
+  useEffect(() => {
+    const fetchProductsById = async () => {
+      if (!productId) return; // If searchQuery is empty, don't do anything
+      setLoading(true);
+
+      try {
+        console.log("Products :", productId);
+
+        const response = await axios.get(`${apiUrl}/product/${productId}`, {
+          withCredentials: true,
+        });
+        console.log("Product by ID:", response.data.product);
+        // const temp = (response.data.product);
+
+        if (response.data.success) {
+          setLoading(false);
+          setProducts([response.data.product]); // Set the product if found
+          setTotalPages(1);
+        } else {
+          setError("Product not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProductsById();
+  }, [productId]);
+
+  if (!products) return <div>No product found for this query.</div>;
 
   // Handle Quantity Change
   const handleQuantityChange = (index, action) => {
@@ -79,8 +122,11 @@ function ProductCard() {
           withCredentials: true,
         }
       );
-      alert("Product added to cart");
+
+      // alert("Product added to cart");
+      toast.success("Product added to cart");
     } catch (error) {
+      toast.error("Failed to add product to cart");
       console.error("Failed to add product to cart:", error);
     }
   };
@@ -131,7 +177,7 @@ function ProductCard() {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
-
+console.log("products",products)
   return (
     <div className="mt-8 px-4 sm:px-8 lg:px-16 mx-auto">
       <div className="grid gap-4 sm:grid-cols-2 sm:mx-[25px] md:grid-cols-3 md:mx-[50px] lg:grid-cols-4 place-items-center lg:mx-[200px]">
@@ -159,7 +205,7 @@ function ProductCard() {
                     ₹{product.mrp}
                   </p>
                 </div>
-                <p className="text-sm md:text-base text-muted text-gray-700">
+                <p className="text-sm md:text-base text-gray-800">
                   {product.description}
                 </p>
               </div>

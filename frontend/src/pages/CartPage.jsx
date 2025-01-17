@@ -1,12 +1,15 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import CartComponent from "../components/CartComponent";
+import { SearchProvider } from "../context/SearchContext.jsx";
 
 const Products = () => {
   return (
     <>
-      <Navbar />
-      <CartComponent />
+      <SearchProvider>
+        <Navbar />
+        <CartComponent />
+      </SearchProvider>
     </>
   );
 };

@@ -14,7 +14,7 @@ const router = Router();
 
 // Client Routes
 router.post("/signup", createUser);
-router.get("/:id", verifyJwt, getUserById);
+router.get("/", verifyJwt, getUserById);
 
 router.post("/verify-otp", verifyOTP);
 router.post("/login", loginUser);

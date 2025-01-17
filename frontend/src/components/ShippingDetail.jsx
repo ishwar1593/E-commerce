@@ -26,7 +26,6 @@ const ShippingDetail = () => {
   const [orderError, setOrderError] = useState("");
   const navigate = useNavigate();
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setShippingDetails((prevState) => ({
@@ -49,7 +48,7 @@ const ShippingDetail = () => {
         shippingDetails,
         { withCredentials: true }
       );
-console.log(createShippingResponse.data.success);
+      console.log(createShippingResponse.data.success);
 
       if (createShippingResponse.data.success) {
         const shippingDetailsId = createShippingResponse.data.data.id; // Assuming the API response contains this ID
@@ -63,15 +62,16 @@ console.log(createShippingResponse.data.success);
           { withCredentials: true }
         );
         console.log("createOrderResponse", createOrderResponse.data);
-        
 
         if (createOrderResponse.data.success) {
           setOrderSuccess(true);
+          // clear local storage
+          localStorage.removeItem("cartQuantities");
 
           // Redirect to My Orders after 5 seconds
           setTimeout(() => {
             navigate("/my-orders");
-          }, 5000);
+          }, 2000);
         } else {
           setOrderError("Failed to create order. Please try again.");
         }

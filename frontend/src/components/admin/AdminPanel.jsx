@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import TopNavigation from "./TopNavigation";
 import OrderPanel from "./OrdersPanel";
 import Products from "./Products";
+import Category from "./Category";
 
 const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -58,14 +59,14 @@ const AdminPanel = () => {
         return (
           <div className="p-4">
             <h2 className="text-2xl font-bold mb-4">Categories Management</h2>
-            {/* Add your Categories component here */}
+            <Category />
           </div>
         );
       default:
         return (
           <>
             {/* Search and Actions */}
-            <div className="flex items-center mb-8 gap-4">
+            {/* <div className="flex items-center mb-8 gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Search..." className="pl-8" />
@@ -74,7 +75,7 @@ const AdminPanel = () => {
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New
               </Button>
-            </div>
+            </div> */}
 
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-3 mb-8">

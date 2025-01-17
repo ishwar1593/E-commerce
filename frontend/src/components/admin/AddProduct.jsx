@@ -30,7 +30,6 @@ const AddProduct = ({ setIsAddModalOpen, fetchProducts }) => {
           withCredentials: true,
         }); // Assuming your API has an endpoint for categories
 
-        
         setCategories(response.data.data); // Set the categories to state
       } catch (err) {
         toast.error("Failed to fetch categories.");
@@ -58,29 +57,38 @@ const AddProduct = ({ setIsAddModalOpen, fetchProducts }) => {
     setImagePreviews(previews);
   };
   const handleSubmit = async () => {
+    if (parseFloat(formData.sales_price) > parseFloat(formData.mrp)) {
+      toast.error("Sales price cannot be greater than MRP.");
+      return; // Stop submission if validation fails
+    }
+
     const formDataToSend = new FormData();
     formDataToSend.append("name", formData.name);
     formDataToSend.append("description", formData.description);
-    formDataToSend.append("category", formData.category); // Ensure the field name is correct
+    formDataToSend.append("category", formData.category.name); // Ensure the field name is correct
     formDataToSend.append("package_size", formData.package_size);
     formDataToSend.append("tags", formData.tags);
     formDataToSend.append("sales_price", formData.sales_price);
     formDataToSend.append("mrp", formData.mrp);
     formDataToSend.append("stockQty", formData.stockQty);
-  
+
     formData.photos.forEach((file) => {
       formDataToSend.append("photos", file);
     });
-  
+
     console.log("Form Data:", formDataToSend); // Log the form data to check
-  
+
     try {
-      const response = await axios.post(`${apiUrl}/product/addProduct`, formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        `${apiUrl}/product/addProduct`,
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
       toast("Product added successfully!");
       setIsAddModalOpen(false);
       fetchProducts();
@@ -89,7 +97,6 @@ const AddProduct = ({ setIsAddModalOpen, fetchProducts }) => {
       console.error("Error adding product:", err.response?.data || err);
     }
   };
-  
 
   return (
     <div className="p-6 space-y-6 h-[80vh] overflow-y-auto">

@@ -142,13 +142,13 @@ const MyOrderComponent = () => {
                 </tbody>
               </Table>
 
-              <Button
+              {/* <Button
                 variant="outline"
                 className="mt-4"
                 onClick={() => navigate(`/order/${order.id}`)}
               >
                 View Order Details
-              </Button>
+              </Button> */}
             </div>
           </Card>
         ))

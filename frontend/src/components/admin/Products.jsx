@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import Modal from "./Modal";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
+import { set } from "react-hook-form";
 
 const apiUrl = "http://localhost:8000/api/v1";
 const Products = () => {
@@ -39,6 +40,7 @@ const Products = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productId, setProductId] = useState("");
   const [editFormData, setEditFormData] = useState({
     name: "",
     mrp: "",
@@ -162,20 +164,10 @@ const Products = () => {
     }
   };
 
-  const handleEditProduct = async (id) => {
-    await fetchProductById(id);
-
-    setEditFormData({
-      name: selectedProduct.name,
-      description: selectedProduct.description,
-      category: selectedProduct.category.name || "Undefined",
-      package_size: selectedProduct.package_size,
-      tags: selectedProduct.tags,
-      sales_price: selectedProduct.sales_price,
-      mrp: selectedProduct.mrp,
-      stockQty: selectedProduct.stockQty,
-    });
-    setIsEditModalOpen(true);
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product); // Set selected product to be edited
+    setProductId(product.id); // Set the product ID
+    setIsEditModalOpen(true); // Open the modal
   };
 
   const handleUpdateProduct = async (id) => {
@@ -278,9 +270,9 @@ const Products = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline">
+        {/* <Button variant="outline">
           <Filter className="mr-2 h-4 w-4" /> Filter
-        </Button>
+        </Button> */}
       </div>
 
       {/* Products Grid */}
@@ -297,7 +289,7 @@ const Products = () => {
                 <TableHead>MRP</TableHead>
                 <TableHead>Sales Price</TableHead>
                 <TableHead>Stock</TableHead>
-                <TableHead>Status</TableHead>
+                {/* <TableHead>Status</TableHead> */}
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -329,7 +321,9 @@ const Products = () => {
                   <TableCell>₹{product.mrp}</TableCell>
                   <TableCell>₹{product.sales_price}</TableCell>
                   <TableCell>
-                    <Badge
+                    <Badge className={
+                        product.stockQty > 10 ? "bg-green-600 text-white" : "bg-red-600 text-white"
+                      }
                       variant={
                         product.stockQty > 10 ? "success" : "destructive"
                       }
@@ -337,7 +331,7 @@ const Products = () => {
                       {product.stockQty || 0} in stock
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     <Badge
                       variant={
                         product.status === "ACTIVE" ? "success" : "secondary"
@@ -345,7 +339,7 @@ const Products = () => {
                     >
                       {product.status || "ACTIVE"}
                     </Badge>
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -355,7 +349,9 @@ const Products = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => handleEditProduct(product.id)}
+                          onClick={() => {
+                            handleEditProduct(product);
+                          }}
                         >
                           Edit Product
                         </DropdownMenuItem>
@@ -364,7 +360,7 @@ const Products = () => {
                         >
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Update Stock</DropdownMenuItem>
+                        {/* <DropdownMenuItem>Update Stock</DropdownMenuItem> */}
                         <DropdownMenuItem
                           className="text-red-600"
                           onClick={() => handleDeleteProduct(product.ws_code)}
@@ -443,9 +439,10 @@ const Products = () => {
           onClose={() => setIsEditModalOpen(false)}
         >
           <EditProduct
-            editFormData={editFormData}
-            setEditFormData={setEditFormData}
-            handleUpdateProduct={handleUpdateProduct}
+            setIsEditModalOpen={setIsEditModalOpen}
+            productId={productId} // Pass productId to the EditProduct component
+            selectedProduct={selectedProduct}
+            fetchProducts={fetchProducts}
           />
         </Modal>
       )}

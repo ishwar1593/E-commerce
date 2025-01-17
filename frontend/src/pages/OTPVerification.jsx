@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useNavigate } from "react-router";
+import { SearchProvider } from "../context/SearchContext.jsx";
+import { toast } from "react-toastify";
 
 const apiUrl = "http://localhost:8000/api/v1";
 const OTPVerification = () => {
@@ -78,11 +80,13 @@ const OTPVerification = () => {
         console.log(response);
 
         if (response.data.success) {
+          toast.success("Email verified successfully. Please Sign in.");
           setSuccess(true);
           setError(null);
           // Redirect to next page or show success message
           navigate("/signin");
         } else {
+          toast.error(response.data.error || "OTP verification failed.");
           setError(response.data.error || "OTP verification failed.");
           setSuccess(false);
           navigate("/verify-otp");
@@ -108,62 +112,64 @@ const OTPVerification = () => {
     .padStart(2, "0")}:${(timer % 60).toString().padStart(2, "0")}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            Verify Your Email
-          </CardTitle>
-          <p className="text-center text-gray-500 mt-2">
-            We've sent a verification code to your email
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex justify-center space-x-4">
-              {otp.map((digit, index) => (
-                <Input
-                  key={index}
-                  ref={refs[index]}
-                  type="text"
-                  maxLength={1}
-                  className="w-14 h-14 text-center text-2xl"
-                  value={digit}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  onPaste={handlePaste}
-                />
-              ))}
-            </div>
+    <SearchProvider>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">
+              Verify Your Email
+            </CardTitle>
+            <p className="text-center text-gray-500 mt-2">
+              We've sent a verification code to your email
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex justify-center space-x-4">
+                {otp.map((digit, index) => (
+                  <Input
+                    key={index}
+                    ref={refs[index]}
+                    type="text"
+                    maxLength={1}
+                    className="w-14 h-14 text-center text-2xl"
+                    value={digit}
+                    onChange={(e) => handleChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={handlePaste}
+                  />
+                ))}
+              </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={otp.some((digit) => !digit)}
-            >
-              Verify Email
-            </Button>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={otp.some((digit) => !digit)}
+              >
+                Verify Email
+              </Button>
 
-            <div className="text-center text-sm">
-              <p className="text-gray-500">
-                Didn't receive the code?{" "}
-                {isResendDisabled ? (
-                  <span>Resend in {formattedTimer}</span>
-                ) : (
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto font-normal"
-                    onClick={handleResendOTP}
-                  >
-                    Resend OTP
-                  </Button>
-                )}
-              </p>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+              <div className="text-center text-sm">
+                <p className="text-gray-500">
+                  Didn't receive the code?{" "}
+                  {isResendDisabled ? (
+                    <span>Resend in {formattedTimer}</span>
+                  ) : (
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto font-normal"
+                      onClick={handleResendOTP}
+                    >
+                      Resend OTP
+                    </Button>
+                  )}
+                </p>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </SearchProvider>
   );
 };
 
