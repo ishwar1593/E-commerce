@@ -163,8 +163,8 @@ function ProductCard() {
             key={idx}
             className={`px-4 py-2 rounded-md border ${
               page === currentPage
-                ? "bg-black text-white"
-                : "bg-white text-black"
+                ? "bg-primary text-white"
+                : "bg-white text-primary"
             }`}
             onClick={() => page !== "..." && setCurrentPage(Number(page))}
           >
