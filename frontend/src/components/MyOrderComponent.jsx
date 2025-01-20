@@ -25,6 +25,7 @@ const MyOrderComponent = () => {
       .catch((error) => {
         console.error("Error fetching orders:", error);
         setLoading(false); // Stop loading even if there's an error
+        navigate("/signin"); // Redirect to signin page if there's an error
       });
   }, []);
 

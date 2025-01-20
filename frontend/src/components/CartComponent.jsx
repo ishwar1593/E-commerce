@@ -130,6 +130,7 @@ const CartComponent = () => {
         console.error("Failed to fetch cart data:", error);
         const localCart = JSON.parse(localStorage.getItem("cartItems")) || [];
         setCartItems(localCart);
+        navigate("/signin");
       } finally {
         setLoading(false);
       }
