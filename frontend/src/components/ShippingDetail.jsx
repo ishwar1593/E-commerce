@@ -67,6 +67,7 @@ const ShippingDetail = () => {
           setOrderSuccess(true);
           // clear local storage
           localStorage.removeItem("cartQuantities");
+          // localStorage.removeItem("cartItems");
 
           // Redirect to My Orders after 5 seconds
           setTimeout(() => {

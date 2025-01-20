@@ -1,4 +1,3 @@
-import { error } from "console";
 import prisma from "../../db/connectDB.js";
 import {
   deleteFromCloudinary,
@@ -142,8 +141,7 @@ const addProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    // Step 1: Get data from the request body
-    const { productId } = req.params; // Get the product ID from the URL params
+    const { productId } = req.params;
     const {
       name,
       description,
@@ -153,10 +151,12 @@ const updateProduct = async (req, res) => {
       sales_price,
       mrp,
       stockQty,
+      images, // This will be the JSON string of existing image URLs
     } = req.body;
-    const productPhotosLocalPath = req.files; // If images are updated, handle them
 
-    // Step 2: Validation (ensure required fields are provided except `ws_code` since it's immutable)
+    const productPhotosLocalPath = req.files;
+
+    // Basic validation
     if (
       !name ||
       !description ||
@@ -172,29 +172,37 @@ const updateProduct = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
-    // Step 3: Check if the product exists
-    const product = await prisma.product.findUnique({
+    // Check if product exists
+    const existingProduct = await prisma.product.findUnique({
       where: {
-        id: productId, // `ws_code` will be passed as a parameter
+        id: productId,
       },
     });
 
-    if (!product) {
+    if (!existingProduct) {
       return res.status(404).json({
         success: false,
         message: `Product not found.`,
       });
     }
 
-    // Step 4: Handle images (if applicable)
-    let cloudinaryUploadResults = [];
+    // Parse existing images from the JSON string
+    let existingImages = [];
+    try {
+      existingImages = JSON.parse(images || "[]");
+    } catch (error) {
+      console.error("Error parsing existing images:", error);
+      existingImages = [];
+    }
+
+    // Handle new image uploads if any
+    let newImageUrls = [];
     if (productPhotosLocalPath && productPhotosLocalPath.length > 0) {
       const productPhotos = productPhotosLocalPath.map((file) =>
         uploadOnCloudinary(file.path)
       );
 
-      // Wait for all image uploads to finish
-      cloudinaryUploadResults = await Promise.all(productPhotos);
+      const cloudinaryUploadResults = await Promise.all(productPhotos);
 
       if (
         !cloudinaryUploadResults ||
@@ -202,12 +210,30 @@ const updateProduct = async (req, res) => {
       ) {
         return res.status(400).json({
           success: false,
-          message: "Error while updating images...",
+          message: "Error while uploading new images.",
         });
       }
+
+      newImageUrls = cloudinaryUploadResults.map((result) => result.secure_url);
     }
-    // category check
-    const categoryExists = await prisma.category.findUnique({
+
+    // Combine existing and new image URLs
+    const finalImageUrls = [...existingImages, ...newImageUrls];
+
+    // Delete removed images from Cloudinary
+    const imagesToDelete = existingProduct.images.filter(
+      (url) => !existingImages.includes(url)
+    );
+
+    if (imagesToDelete.length > 0) {
+      const deletePromises = imagesToDelete.map((url) =>
+        deleteFromCloudinary(url)
+      );
+      await Promise.all(deletePromises);
+    }
+
+    // Category check
+    const categoryExists = await prisma.category.findFirst({
       where: {
         name: category,
       },
@@ -220,7 +246,7 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    // Step 5: Update product in the database (excluding ws_code which is immutable)
+    // Update product in database
     const updatedProduct = await prisma.product.update({
       where: {
         id: productId,
@@ -234,21 +260,17 @@ const updateProduct = async (req, res) => {
         package_size: parseInt(package_size),
         tags: Array.isArray(tags)
           ? tags
-          : tags.split(",").map((tag) => tag.trim()), // Convert array to JSON if tags is a string
+          : tags.split(",").map((tag) => tag.trim()),
         sales_price: parseFloat(sales_price),
         mrp: parseFloat(mrp),
         stockQty: parseInt(stockQty),
-        images:
-          cloudinaryUploadResults.length > 0
-            ? cloudinaryUploadResults.map((result) => result.secure_url) // Only update images if new ones are provided
-            : product.images, // Keep the existing images if no new images are provided
+        images: finalImageUrls,
         user: {
           connect: { id: req.user.id },
         },
       },
     });
 
-    // Step 6: Respond with the updated product
     return res.status(200).json({
       success: true,
       message: "Product updated successfully",
@@ -318,7 +340,6 @@ const deleteProduct = async (req, res) => {
     });
   }
 };
-
 
 const getProductById = async (req, res) => {
   try {
@@ -410,8 +431,6 @@ const getAllProducts = async (req, res) => {
     });
   }
 };
-
-
 
 export {
   searchProduct,

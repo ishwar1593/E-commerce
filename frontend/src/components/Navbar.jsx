@@ -126,6 +126,7 @@ const Navbar = () => {
 
       // clear local storage
       localStorage.removeItem("cartQuantities");
+      
 
       // Update frontend state
       setIsAuthenticated(false);

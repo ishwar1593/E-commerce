@@ -42,7 +42,13 @@ const OrderPanel = () => {
         });
         // Flatten the nested structure from the API response
         const ordersList = Object.values(response.data.data).flat();
-        setOrders(ordersList);
+        // Sort orders by created_at in descending order (latest first)
+        const sortedOrders = ordersList.sort((a, b) => {
+          return new Date(b.created_at) - new Date(a.created_at); // b - a to get latest first
+        });
+        console.log(sortedOrders);
+
+        setOrders(sortedOrders);
         setLoading(false);
       } catch (err) {
         setError("Failed to fetch orders");
@@ -89,7 +95,12 @@ const OrderPanel = () => {
 
       toast.success(`Order status updated into ${newStatus} successfully`);
     } catch (err) {
-      setError("Failed to update order status");
+      if (err.response.status === 400) {
+        toast.error(`Failed to update order status due to insufficient stock`);
+      } else {
+        toast.error(`Failed to update order status`);
+        setError("Failed to update order status");
+      }
     }
   };
 
@@ -118,13 +129,13 @@ const OrderPanel = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg text-red-500">{error}</p>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <p className="text-lg text-red-500">{error}</p>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="p-6">
@@ -179,6 +190,8 @@ const OrderPanel = () => {
                 <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Products</TableHead>
+                <TableHead>Req. Qty.</TableHead>
+                <TableHead>Avail. Qty.</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
@@ -202,8 +215,35 @@ const OrderPanel = () => {
                     <div className="max-w-xs">
                       {order.order_items.map((item, index) => (
                         <div key={item.id} className="text-sm">
-                          {item.product.name} x{item.quantity}
+                          {item.product.name}
                           {index < order.order_items.length - 1 && ", "}
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      {/* <p className="font-medium">{`${order.user.fname} ${order.user.lname}`}</p> */}
+
+                      {order.order_items.map((item, index) => (
+                        <div
+                          key={item.id}
+                          className="text-sm text-black font-semibold"
+                        >
+                          {item.quantity}
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      {order.order_items.map((item) => (
+                        <div
+                          key={item.id}
+                          className="text-sm text-black font-semibold"
+                        >
+                          {item.product.stockQty}
+                          {/* This will display the stock quantity for the product */}
                         </div>
                       ))}
                     </div>

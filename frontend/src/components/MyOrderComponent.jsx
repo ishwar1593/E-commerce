@@ -19,7 +19,12 @@ const MyOrderComponent = () => {
     axios
       .get(`${apiUrl}/order/user`, { withCredentials: true })
       .then((response) => {
-        setOrders(response.data.data); // The orders are inside the "data" array
+        // Sort orders by created_at in descending order (latest first)
+        const sortedOrders = response.data.data.sort((a, b) => {
+          return new Date(b.created_at) - new Date(a.created_at); // b - a to get latest first
+        });
+
+        setOrders(sortedOrders); // The orders are inside the "data" array
         setLoading(false); // Set loading to false once data is fetched
       })
       .catch((error) => {

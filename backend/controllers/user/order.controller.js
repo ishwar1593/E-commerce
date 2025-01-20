@@ -65,20 +65,20 @@ const createOrder = async (req, res) => {
     }
 
     // Deduct stock quantities
-    try {
-      const stockUpdatePromises = cart.items.map((item) =>
-        prisma.product.update({
-          where: { id: item.product_id },
-          data: { stockQty: { decrement: item.quantity } },
-        })
-      );
-      await Promise.all(stockUpdatePromises);
-    } catch (error) {
-      console.error("Error updating product stock:", error);
-      return res.status(500).json({
-        error: "Internal server error.(Error updating product stock)",
-      });
-    }
+    // try {
+    //   const stockUpdatePromises = cart.items.map((item) =>
+    //     prisma.product.update({
+    //       where: { id: item.product_id },
+    //       data: { stockQty: { decrement: item.quantity } },
+    //     })
+    //   );
+    //   await Promise.all(stockUpdatePromises);
+    // } catch (error) {
+    //   console.error("Error updating product stock:", error);
+    //   return res.status(500).json({
+    //     error: "Internal server error.(Error updating product stock)",
+    //   });
+    // }
 
     // Clear the cart items (delete cart items) after placing the order
     await prisma.cartItem.deleteMany({

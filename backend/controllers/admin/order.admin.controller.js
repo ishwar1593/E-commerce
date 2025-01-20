@@ -31,6 +31,7 @@ const getAllOrders = async (req, res) => {
                 images: true,
                 category: true,
                 ws_code: true,
+                stockQty: true,
               },
             },
           },
@@ -54,7 +55,6 @@ const getAllOrders = async (req, res) => {
   }
 };
 
-// const updateOrderStatus = async (req, res) => {
 //   const { orderId, newStatus } = req.body;
 
 //   if (!orderId || !newStatus) {

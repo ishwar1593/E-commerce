@@ -1,27 +1,24 @@
 import React, { useState } from "react";
 import {
-  BellIcon,
-  Settings,
-  Users,
   Package,
-  Search,
-  PlusCircle,
-  MoreHorizontal,
   LayoutDashboard,
+  Layers2,
+  BookCopy,
+  Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
 import TopNavigation from "./TopNavigation";
 import OrderPanel from "./OrdersPanel";
 import Products from "./Products";
 import Category from "./Category";
+import User from "./Users"
 
 const AdminPanel = () => {
-  const [activeSection, setActiveSection] = useState('dashboard');
-  
+  const [activeSection, setActiveSection] = useState("dashboard");
+
   const stats = [
     {
       title: "Total Revenue",
@@ -42,25 +39,28 @@ const AdminPanel = () => {
 
   // Navigation items configuration
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'orders', label: 'Orders', icon: Package },
-    { id: 'products', label: 'Products', icon: Package },
-    { id: 'categories', label: 'Categories', icon: Package },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "orders", label: "Orders", icon: Package },
+    { id: "products", label: "Products", icon: BookCopy },
+    { id: "categories", label: "Categories", icon: Layers2 },
+    { id: "users", label: "Users", icon: Users },
   ];
 
   const renderMainContent = () => {
     switch (activeSection) {
-      case 'orders':
+      case "orders":
         return <OrderPanel />;
-      case 'products':
+      case "products":
         return <Products />;
-      case 'categories':
+      case "categories":
         return (
           <div className="p-4">
             <h2 className="text-2xl font-bold mb-4">Categories Management</h2>
             <Category />
           </div>
         );
+      case "users":
+        return <User />;
       default:
         return (
           <>
@@ -89,7 +89,8 @@ const AdminPanel = () => {
                 <CardTitle>Recent Orders Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <OrderPanel limit={5} /> {/* Show limited orders on dashboard */}
+                <OrderPanel limit={5} />{" "}
+                {/* Show limited orders on dashboard */}
               </CardContent>
             </Card>
           </>
@@ -121,9 +122,7 @@ const AdminPanel = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          {renderMainContent()}
-        </main>
+        <main className="flex-1 p-8">{renderMainContent()}</main>
       </div>
     </div>
   );

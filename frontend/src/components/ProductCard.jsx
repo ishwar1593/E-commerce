@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useSearch } from "../context/SearchContext";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
 const apiUrl = "http://localhost:8000/api/v1";
 function ProductCard() {
   const { searchQuery } = useSearch();
   const { productId } = useSearch();
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantities, setQuantities] = useState([]);
@@ -20,18 +23,17 @@ function ProductCard() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        if(!searchQuery){
-
+        if (!searchQuery) {
           const response = await axios.get(
             `${apiUrl}/product?page=${currentPage}&pageSize=10`
           );
           if (response.data.success) {
             console.log("Products:", response.data.data);
-            
-              setProducts(response.data.data);
-            
+
+            setProducts(response.data.data);
+
             setTotalPages(response.data.pagination.totalPages);
-  
+
             // Initialize quantities from localStorage (if any)
             const savedQuantities =
               JSON.parse(localStorage.getItem("cartQuantities")) || [];
@@ -39,22 +41,20 @@ function ProductCard() {
               (_, index) => savedQuantities[index] || 1
             );
             setQuantities(initialQuantities);
-                    setLoading(false);
+            setLoading(false);
           } else {
             setError("Failed to load products.");
           }
         }
-
-      
       } catch (err) {
         console.log(err);
-                setLoading(false);
+        setLoading(false);
         setError("Error fetching data.");
       }
     }
 
     fetchProducts();
-  }, [currentPage,searchQuery]);
+  }, [currentPage, searchQuery]);
 
   // Search use effect
   useEffect(() => {
@@ -111,6 +111,7 @@ function ProductCard() {
 
   // Call Cart API to add product to the cart
   const addToCart = async (productId, quantity) => {
+    // window.location.reload();
     try {
       await axios.post(
         `${apiUrl}/cart/add-cart`,
@@ -124,8 +125,14 @@ function ProductCard() {
       );
 
       // alert("Product added to cart");
+      window.location.reload();
       toast.success("Product added to cart");
     } catch (error) {
+      if (error.status === 401) {
+        toast.error("Please sign in to add products to cart");
+        navigate("/signin"); // Redirect to signin page if there's an error
+      }
+
       toast.error("Failed to add product to cart");
       console.error("Failed to add product to cart:", error);
     }
@@ -177,7 +184,7 @@ function ProductCard() {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
-console.log("products",products)
+  console.log("products", products);
   return (
     <div className="mt-8 px-4 sm:px-8 lg:px-16 mx-auto">
       <div className="grid gap-4 sm:grid-cols-2 sm:mx-[25px] md:grid-cols-3 md:mx-[50px] lg:grid-cols-4 place-items-center lg:mx-[200px]">
