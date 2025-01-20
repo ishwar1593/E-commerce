@@ -35,6 +35,8 @@ function App() {
         }
         if (response.data.user.role === "ADMIN") {
           setIsAdmin(true);
+          console.log(isAdmin);
+          
         }
       } catch (error) {
         setIsAdmin(false);
@@ -60,9 +62,9 @@ function App() {
         <Route
           path="/admin"
           element={
-            <AdminRoute>
+            // <AdminRoute>
               <AdminDashboard />
-            </AdminRoute>
+            // </AdminRoute>
           }
         />
       </Routes>
