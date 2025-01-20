@@ -203,17 +203,13 @@ const Products = () => {
       );
 
       // Display a success toast
-      toast.success("Product deleted successfully.");
+      toast.success("Product deleted successfully");
 
       // Close the delete modal
       setIsDeleteModalOpen(false);
     } catch (err) {
       // Display an error toast in case of failure
-      toast({
-        title: "Error",
-        description: "Failed to delete product",
-        variant: "destructive",
-      });
+      toast.error(`Product not deleted successfully due to ${err.message}`)
     }
   };
 
