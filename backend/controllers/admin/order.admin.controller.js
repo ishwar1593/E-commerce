@@ -54,6 +54,53 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+// const updateOrderStatus = async (req, res) => {
+//   const { orderId, newStatus } = req.body;
+
+//   if (!orderId || !newStatus) {
+//     return res
+//       .status(400)
+//       .json({ success: false, error: "orderId and newStatus are required" });
+//   }
+
+//   try {
+//     // Check if the order exists
+//     const order = await prisma.order.findUnique({
+//       where: {
+//         id: orderId,
+//       },
+//     });
+
+//     if (!order) {
+//       return res.status(404).json({ success: false, error: "Order not found" });
+//     }
+
+//     // Check if the new status is valid (can be extended based on your requirements)
+//     const validStatuses = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
+//     if (!validStatuses.includes(newStatus)) {
+//       return res.status(400).json({ success: false, error: "Invalid status" });
+//     }
+
+//     // Update the order status
+//     const updatedOrder = await prisma.order.update({
+//       where: {
+//         id: orderId,
+//       },
+//       data: {
+//         status: newStatus,
+//       },
+//     });
+
+//     return res.json({
+//       success: true,
+//       data: updatedOrder,
+//       message: "Order status updated successfully",
+//     });
+//   } catch (error) {
+//     return res.status(500).json({ success: false, error: error.message });
+//   }
+// };
+
 const updateOrderStatus = async (req, res) => {
   const { orderId, newStatus } = req.body;
 
@@ -69,16 +116,57 @@ const updateOrderStatus = async (req, res) => {
       where: {
         id: orderId,
       },
+      include: {
+        order_items: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
 
     if (!order) {
       return res.status(404).json({ success: false, error: "Order not found" });
     }
 
-    // Check if the new status is valid (can be extended based on your requirements)
-    const validStatuses = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
-    if (!validStatuses.includes(newStatus)) {
-      return res.status(400).json({ success: false, error: "Invalid status" });
+    // Define the status transition rules
+    const statusChangeRules = {
+      PENDING: ["CONFIRMED", "CANCELLED"], // Options: CONFIRMED, CANCELLED
+      CONFIRMED: ["COMPLETED"], // Option: COMPLETED
+      COMPLETED: [], // No options available
+      CANCELLED: [], // No options available
+    };
+
+    const currentStatus = order.status;
+
+    // Validate status change rules
+    if (!statusChangeRules[currentStatus].includes(newStatus)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid status transition from ${currentStatus} to ${newStatus}`,
+      });
+    }
+
+    // If the order is being confirmed, we need to decrement stock quantity.
+    if (newStatus === "CONFIRMED") {
+      // Ensure that the stock is available
+      for (const item of order.order_items) {
+        const product = item.product;
+        if (product.stockQty < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            error: `Not enough stock for product ${product.name}`,
+          });
+        }
+
+        // Decrement the stock quantity
+        await prisma.product.update({
+          where: { id: product.id },
+          data: {
+            stockQty: product.stockQty - item.quantity,
+          },
+        });
+      }
     }
 
     // Update the order status
@@ -91,14 +179,19 @@ const updateOrderStatus = async (req, res) => {
       },
     });
 
+    // Return the updated order along with available status options
+    const availableStatusOptions = statusChangeRules[newStatus];
+
     return res.json({
       success: true,
       data: updatedOrder,
+      availableStatusOptions,
       message: "Order status updated successfully",
     });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
+
 
 export { getAllOrders, updateOrderStatus };

@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { toast } from "react-toastify";
+import { get } from "react-hook-form";
 
 const apiUrl = "http://localhost:8000/api/v1";
 
@@ -24,6 +26,13 @@ const OrderPanel = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filteredStatus, setFilteredStatus] = useState("ALL");
+
+  const statusChangeRules = {
+    PENDING: ["CONFIRMED", "CANCELLED"], // From PENDING to CONFIRMED or CANCELLED
+    CONFIRMED: ["COMPLETED"], // From CONFIRMED to COMPLETED
+    COMPLETED: [], // No status change from COMPLETED
+    CANCELLED: [], // No status change from CANCELLED
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -54,10 +63,10 @@ const OrderPanel = () => {
 
   const getStatusColor = (status) => {
     const statusMap = {
-      PENDING: "warning",
-      CONFIRMED: "default",
-      COMPLETED: "success",
-      CANCELLED: "destructive",
+      PENDING: "bg-yellow-600",
+      CONFIRMED: "bg-blue-600",
+      COMPLETED: "bg-green-600",
+      CANCELLED: "bg-red-600",
     };
     return statusMap[status] || "default";
   };
@@ -77,6 +86,8 @@ const OrderPanel = () => {
           order.id === orderId ? { ...order, status: newStatus } : order
         )
       );
+
+      toast.success(`Order status updated into ${newStatus} successfully`);
     } catch (err) {
       setError("Failed to update order status");
     }
@@ -201,39 +212,19 @@ const OrderPanel = () => {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant={getStatusColor(order.status)}>
+                        <Button className={getStatusColor(order.status)}>
                           {order.status}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(order.id, "PENDING")
-                          }
-                        >
-                          PENDING
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(order.id, "CONFIRMED")
-                          }
-                        >
-                          CONFIRMED
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(order.id, "COMPLETED")
-                          }
-                        >
-                          COMPLETED
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(order.id, "CANCELLED")
-                          }
-                        >
-                          CANCELLED
-                        </DropdownMenuItem>
+                        {statusChangeRules[order.status]?.map((status) => (
+                          <DropdownMenuItem
+                            key={status}
+                            onClick={() => handleStatusChange(order.id, status)}
+                          >
+                            {status}
+                          </DropdownMenuItem>
+                        ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

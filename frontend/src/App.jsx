@@ -8,8 +8,42 @@ import ShippingDetailsPage from "./pages/ShippingDetailsPage";
 import MyOrders from "./pages/MyOrderPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import { ToastContainer } from "react-toastify";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Navigate } from "react-router-dom";
 
+const apiUrl = "http://localhost:8000/api/v1";
 function App() {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const AdminRoute = ({ children }) => {
+    if (!isAdmin) {
+      return <Navigate to="/" />;
+    }
+    return children;
+  };
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/check-auth`, {
+          withCredentials: true,
+        }); // withCredentials is important for sending cookies
+
+        if (response.data.isAuthenticated) {
+          setIsLogged(response.data.isAuthenticated);
+        }
+        if (response.data.user.role === "ADMIN") {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   return (
     <>
       <ToastContainer position="top-right" />
@@ -23,7 +57,14 @@ function App() {
         <Route path="/my-orders" element={<MyOrders />} />
 
         {/* Admin Dashboard */}
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
       </Routes>
     </>
   );

@@ -19,15 +19,10 @@ import {
   Menu,
   User,
   LogOut,
-  Mail,
-  Phone,
-  Package,
-  Heart,
 } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router";
 import { useSearch } from "../context/SearchContext";
-import { set } from "react-hook-form";
 
 const apiUrl = "http://localhost:8000/api/v1";
 
@@ -38,11 +33,6 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const navigate = useNavigate();
-
-  const updateCartCountFromLocalStorage = () => {
-    const localCart = JSON.parse(localStorage.getItem("cartItems")) || [];
-    setCartCount(localCart.length);
-  };
 
   // Check authentication status from backend
   useEffect(() => {
@@ -69,15 +59,13 @@ const Navbar = () => {
               const { data } = response.data;
 
               setCartCount(data.items.length);
-
-              localStorage.setItem("cartItems", JSON.stringify(apiCart));
             } catch (error) {
               console.error("Failed to fetch cart data:", error);
               const localCart =
                 JSON.parse(localStorage.getItem("cartItems")) || [];
               setCartItems(localCart);
             } finally {
-              setLoading(false);
+              // setLoading(false);
             }
           };
 

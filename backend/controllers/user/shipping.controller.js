@@ -49,7 +49,6 @@ const createShipping = async (req, res) => {
     if (defaultShippingDetails.length === 0) {
       const newShippingDetail = await prisma.shippingDetails.create({
         data: {
-          id,
           street,
           pincode,
           city,

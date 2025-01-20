@@ -19,6 +19,8 @@ router.get("/", async (req, res) => {
         .json({ success: false, message: "Token expired or invalid" });
     }
 
+    console.log(user);
+    
     // If token is valid, send user data back
     return res.status(200).json({ isAuthenticated: true, user });
   });
