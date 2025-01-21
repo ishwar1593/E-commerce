@@ -4,6 +4,9 @@ const getAllCategories = async (req, res) => {
   try {
     // Fetch all categories from the database
     const categories = await prisma.category.findMany({
+      where: {
+        isdeleted: false,
+      },
       select: {
         id: true,
         name: true,
@@ -43,7 +46,7 @@ const getCategoryById = async (req, res) => {
   try {
     // Fetch the category by ID
     const category = await prisma.category.findUnique({
-      where: { id: categoryId },
+      where: { id: categoryId, isdeleted: false },
     });
 
     if (!category) {

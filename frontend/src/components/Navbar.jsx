@@ -14,12 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ShoppingCart,
-  Menu,
-  User,
-  LogOut,
-} from "lucide-react";
+import { ShoppingCart, Menu, User, LogOut } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router";
 import { useSearch } from "../context/SearchContext";
@@ -32,6 +27,7 @@ const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
 
   // Check authentication status from backend
@@ -43,6 +39,7 @@ const Navbar = () => {
         }); // withCredentials is important for sending cookies
         if (response.data.isAuthenticated) {
           setIsAuthenticated(true);
+          setUserRole(response.data.user.role);
           // Fetch user profile
           const profileResponse = await axios.get(`${apiUrl}/user`, {
             withCredentials: true,
@@ -126,7 +123,6 @@ const Navbar = () => {
 
       // clear local storage
       localStorage.removeItem("cartQuantities");
-      
 
       // Update frontend state
       setIsAuthenticated(false);
@@ -160,6 +156,13 @@ const Navbar = () => {
               >
                 Orders
               </a>
+              {userRole === "ADMIN" ? (
+                <a href="/admin" className="text-gray-600 hover:text-gray-900">
+                  Admin Panel
+                </a>
+              ) : (
+                null
+              )}
             </div>
 
             {/* Right Section */}
@@ -168,7 +171,7 @@ const Navbar = () => {
               <div className="relative">
                 <input
                   type="text"
-                  className="search-input"
+                  className="search-input p-2 outline-primary"
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}

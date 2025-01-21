@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import axios from "axios";
 import { useNavigate } from "react-router";
 import { SearchProvider } from "../context/SearchContext.jsx";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 
 const apiUrl = "http://localhost:8000/api/v1";
 const SignInPage = () => {
@@ -25,8 +26,30 @@ const SignInPage = () => {
   });
   const [resetEmail, setResetEmail] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [userRole, setUserRole] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // const checkAuth = async () => {
+  //   try {
+  //     const response = await axios.get(`${apiUrl}/check-auth`, {
+  //       withCredentials: true,
+  //     });
+  //     console.log(response.data.user.role);
+  //     // if (response.data.user.role && response.data.isAuthenticated) {
+  //     // console.log(response.data.user.role);
+  //     if (response.data.user.role === "ADMIN") {
+  //       console.log("Navigating......");
+  //       navigate("/");
+  //       console.log("Navigating 2222......");
+  //     } else if (response.data.user.role === "USER") {
+  //       navigate("/");
+  //     }
+  //     // }
+  //   } catch (error) {
+  //     toast.error(error.message || "Error while checking authentication.");
+  //   }
+  // };
 
   const validateEmail = (email) => {
     // Regex to validate email format
@@ -53,7 +76,9 @@ const SignInPage = () => {
     }
 
     if (!validatePassword(formData.password)) {
-      toast.error("Password must be at least 6 characters long. Also contains atleast 1 uppercase, 1 lowercase and 1 digit");
+      toast.error(
+        "Password must be at least 6 characters long. Also contains atleast 1 uppercase, 1 lowercase and 1 digit"
+      );
       return;
     }
     setIsLoading(true); // Set loading to true while the request is being made
@@ -67,6 +92,7 @@ const SignInPage = () => {
         // If login is successful, you can redirect the user to a protected page
         toast.success("Login Successfully !");
         navigate("/");
+        // await checkAuth();
       } else {
         toast.error("Login failed");
         setError(response.data.error || "Login failed"); // Handle error from the backend

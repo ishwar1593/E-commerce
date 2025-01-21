@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Plus, Search, Filter, MoreHorizontal } from "lucide-react";
+import { Plus, Search, MoreHorizontal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import Modal from "./Modal";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
-import { set } from "react-hook-form";
 import { toast } from "react-toastify";
 
 const apiUrl = "http://localhost:8000/api/v1";
@@ -30,39 +29,32 @@ const Products = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize] = useState(10); // Set page size
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productId, setProductId] = useState("");
-  const [editFormData, setEditFormData] = useState({
-    name: "",
-    mrp: "",
-    sales_price: "",
-    stockQty: "",
-    category_id: "",
-    status: "",
-  });
 
   const closeAddProductModal = () => {
     setIsAddModalOpen(false);
   };
+
+  // categories
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // products
   useEffect(() => {
     fetchProducts(currentPage);
-    // fetchCategories();
   }, [currentPage]);
 
+  // Search term
   useEffect(() => {
     if (searchTerm) {
       console.log("Search term", searchTerm);
@@ -147,49 +139,32 @@ const Products = () => {
     }
   };
 
-  const fetchProductById = async (id) => {
-    try {
-      const response = await axios.get(`${apiUrl}/product/${id}`, {
-        withCredentials: true,
-      });
-      console.log("Edit response", response.data.product);
-      setSelectedProduct(response.data.product); // Set the product details
-      setIsEditModalOpen(true); // Open the modal
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch product details",
-        variant: "destructive",
-      });
-      console.error("Error fetching product details:", err);
-    }
-  };
-
   const handleEditProduct = (product) => {
     setSelectedProduct(product); // Set selected product to be edited
     setProductId(product.id); // Set the product ID
     setIsEditModalOpen(true); // Open the modal
   };
 
-  const handleUpdateProduct = async (id) => {
-    try {
-      await axios.put(`${apiUrl}/product/updateProduct/${id}`, editFormData, {
-        withCredentials: true,
-      });
-      toast({
-        title: "Success",
-        description: "Product updated successfully",
-      });
-      setIsEditModalOpen(false);
-      fetchProducts();
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to update product",
-        variant: "destructive",
-      });
-    }
-  };
+  // const handleUpdateProduct = async (id) => {
+  //   try {
+  //     await axios.put(`${apiUrl}/product/updateProduct/${id}`, editFormData, {
+  //       withCredentials: true,
+  //     });
+  //     toast({
+  //       title: "Success",
+  //       description: "Product updated successfully",
+  //     });
+  //     setIsEditModalOpen(false);
+  //     fetchProducts();
+  //   } catch (err) {
+  //     toast({
+  //       title: "Error",
+  //       description: "Failed to update product",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+  
   const handleDeleteProduct = async (ws_code) => {
     try {
       // Send the delete request to the server
@@ -212,12 +187,6 @@ const Products = () => {
       toast.error(`Product not deleted successfully due to ${err.message}`)
     }
   };
-
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (loading) {
     return (
@@ -288,7 +257,7 @@ const Products = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
+              {products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">

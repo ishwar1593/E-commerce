@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "react-toastify";
 
 const apiUrl = "http://localhost:8000/api/v1";
 
@@ -42,7 +43,9 @@ const CategoryManagement = () => {
         setCategories(response.data.data);
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to fetch categories");
+      toast.error(
+        error.response?.data?.message || "Failed to fetch categories"
+      );
     }
   };
 
@@ -51,7 +54,7 @@ const CategoryManagement = () => {
   }, []);
 
   // Filter categories based on search query
-  const filteredCategories = categories.filter(category =>
+  const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -72,7 +75,7 @@ const CategoryManagement = () => {
         );
 
         if (response.data.success) {
-          alert("Category updated successfully");
+          toast.success("Category updated successfully");
         }
       } else {
         // Create new category
@@ -85,7 +88,7 @@ const CategoryManagement = () => {
         );
 
         if (response.data.success) {
-          alert("Category created successfully");
+          toast.success("Category created successfully");
         }
       }
 
@@ -95,7 +98,7 @@ const CategoryManagement = () => {
       setIsOpen(false);
       setEditingId(null);
     } catch (error) {
-      alert(
+      toast.error(
         error.response?.data?.message ||
           (editingId
             ? "Failed to update category"
@@ -118,11 +121,11 @@ const CategoryManagement = () => {
       );
 
       if (response.data.success) {
-        alert("Category deleted successfully");
+        toast.success("Category deleted successfully");
         fetchCategories();
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to delete category");
+      toast.error(error.response?.data?.message || "Failed to delete category");
     }
   };
 

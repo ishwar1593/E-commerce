@@ -20,9 +20,9 @@ router.get("/", async (req, res) => {
     }
 
     console.log(user);
-    
+
     // If token is valid, send user data back
-    return res.status(200).json({ isAuthenticated: true, user });
+    return res.status(200).json({ success: true, isAuthenticated: true, user });
   });
 });
 

@@ -1,9 +1,10 @@
 model Category {
-    id         String   @id @default(uuid())
-    name       String   @unique // Unique name for each category
+    id         String    @id @default(uuid())
+    name       String    @unique // Unique name for each category
     products   Product[] // One-to-Many relationship with Product model
-    created_at DateTime @default(now())
-    updated_at DateTime @updatedAt
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    isdeleted  Boolean   @default(false)
 
     @@index([name]) // Indexing for search optimization
 }

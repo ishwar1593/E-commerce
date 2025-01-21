@@ -11,6 +11,9 @@ const getAllUsersForAdmin = async (req, res) => {
 
     // Step 2: Fetch all users from the database
     const users = await prisma.user.findMany({
+      where: {
+        isdeleted: false,
+      },
       select: {
         id: true,
         fname: true,
@@ -19,6 +22,7 @@ const getAllUsersForAdmin = async (req, res) => {
         role: true,
         is_verified: true,
         last_login: true,
+        isdeleted: true,
       }, // You can adjust the fields as per your requirement
     });
 
@@ -46,7 +50,7 @@ const updateUserRole = async (req, res) => {
   try {
     // Find the user by ID
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: userId, isdeleted: false },
     });
 
     if (!user) {
@@ -57,7 +61,7 @@ const updateUserRole = async (req, res) => {
     if (userId === req.user.id) {
       return res
         .status(400)
-        .json({ message: "You cannot update your own role" });
+        .json({ success: false, message: "You cannot update your own role" });
     }
 
     // Update the user's role
@@ -91,10 +95,18 @@ const deleteUser = async (req, res) => {
     // Get the userId from the route parameter
     const { userId } = req.params;
 
+    // Check if the user is trying to update their own role
+    if (userId === req.user.id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "You cannot delete yourself." });
+    }
+
     // Verify if the userId exists in the database
     const user = await prisma.user.findUnique({
       where: {
         id: userId,
+        isdeleted: false,
       },
     });
 
@@ -105,10 +117,19 @@ const deleteUser = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
+    if (user.email === "ishwar.t@medkart.in") {
+      return res
+        .status(400)
+        .json({ success: false, message: "You cannot delete this user." });
+    }
+
     // Proceed to delete the user from the database
-    await prisma.user.delete({
+    await prisma.user.update({
       where: {
-        id: userId,
+        id: userId, // Only target the user's id for the update
+      },
+      data: {
+        isdeleted: true, // Mark as deleted
       },
     });
 

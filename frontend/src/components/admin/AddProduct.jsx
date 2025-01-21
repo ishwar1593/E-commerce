@@ -65,7 +65,7 @@ const AddProduct = ({ setIsAddModalOpen, fetchProducts }) => {
     const formDataToSend = new FormData();
     formDataToSend.append("name", formData.name);
     formDataToSend.append("description", formData.description);
-    formDataToSend.append("category", formData.category.name); // Ensure the field name is correct
+    formDataToSend.append("category", formData.category); // Ensure the field name is correct
     formDataToSend.append("package_size", formData.package_size);
     formDataToSend.append("tags", formData.tags);
     formDataToSend.append("sales_price", formData.sales_price);

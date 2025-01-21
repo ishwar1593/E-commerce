@@ -12,6 +12,7 @@ model User {
     role       Role      @default(USER)
     created_at DateTime  @default(now())
     last_login DateTime?
+    isdeleted  Boolean   @default(false)
 
     // Email Verification Fields
     otp         String? // OTP sent for email verification

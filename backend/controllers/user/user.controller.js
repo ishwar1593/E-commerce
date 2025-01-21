@@ -31,6 +31,7 @@ const createUser = async (req, res) => {
     const userExists = await prisma.user.findUnique({
       where: {
         email,
+        isdeleted: false,
       },
     });
 
@@ -128,7 +129,6 @@ const verifyOTP = async (req, res) => {
   }
 };
 
-
 const loginUser = async (req, res) => {
   const { email, password } = req.body; // Step 1 - Get the data from the request body
 
@@ -143,6 +143,7 @@ const loginUser = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: {
       email,
+      isdeleted: false,
     },
   });
 
@@ -164,7 +165,9 @@ const loginUser = async (req, res) => {
   // Step 5 - Compare the password
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
   if (!isPasswordCorrect) {
-    return res.status(400).json({ success: false, message: "Invalid password" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid password" });
   }
 
   // Step 6 - Generate token and set cookie
@@ -206,6 +209,7 @@ const forgotPassword = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: {
         email,
+        isdeleted: false,
       },
     });
 
@@ -318,7 +322,9 @@ const getUserById = async (req, res) => {
       });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: id } });
+    const user = await prisma.user.findUnique({
+      where: { id: id, isdeleted: false },
+    });
 
     return res.status(200).json({
       success: true,

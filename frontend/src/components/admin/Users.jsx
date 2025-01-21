@@ -137,7 +137,7 @@ const UserManagement = () => {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
-              {/* <TableHead className="text-right">Actions</TableHead> */}
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -179,13 +179,13 @@ const UserManagement = () => {
                   >
                     <Pencil className="w-4 h-4" />
                   </Button> */}
-                  {/* <Button
+                  <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDelete(user.id)}
                   >
                     <Trash2 className="w-4 h-4" />
-                  </Button> */}
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

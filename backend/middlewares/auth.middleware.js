@@ -30,6 +30,7 @@ const verifyJwt = async (req, res, next) => {
     const user = await prisma.user.findUnique({
       where: {
         id: token_decoded.id,
+        isdeleted: false,
       },
       select: {
         id: true,

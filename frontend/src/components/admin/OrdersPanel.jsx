@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
-import { get } from "react-hook-form";
 
 const apiUrl = "http://localhost:8000/api/v1";
 

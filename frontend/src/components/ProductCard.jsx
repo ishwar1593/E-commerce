@@ -129,12 +129,12 @@ function ProductCard() {
       toast.success("Product added to cart");
     } catch (error) {
       if (error.status === 401) {
-        toast.error("Please sign in to add products to cart");
         navigate("/signin"); // Redirect to signin page if there's an error
+        toast.error("Please sign in to add products to cart");
+      } else {
+        toast.error("Failed to add product to cart");
+        console.error("Failed to add product to cart:", error);
       }
-
-      toast.error("Failed to add product to cart");
-      console.error("Failed to add product to cart:", error);
     }
   };
 
