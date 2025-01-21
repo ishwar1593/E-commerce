@@ -42,12 +42,22 @@ const AddProduct = ({ setIsAddModalOpen, fetchProducts }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+  
+    // Validate stock quantity to ensure it doesn't go below 0
+    if (name === "stockQty") {
+      const stockValue = Math.max(0, parseInt(value, 10) || 0); // Ensure non-negative
+      setFormData({
+        ...formData,
+        [name]: stockValue,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
-
+  
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     setFormData({ ...formData, photos: files });
@@ -195,6 +205,7 @@ const AddProduct = ({ setIsAddModalOpen, fetchProducts }) => {
           value={formData.stockQty}
           onChange={handleChange}
           placeholder="Stock Quantity"
+          min="0"
         />
       </div>
 
